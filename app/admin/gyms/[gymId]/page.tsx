@@ -19,6 +19,9 @@ const VENDOR_STATUS_STYLES: Record<VendorStatus, string> = {
   LIVE: "bg-green-100 text-green-800"
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminGymReviewPage({
   params,
 }: {

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import type { Vendor, VendorStatus } from "@/lib/types/db";
 
 // ── Shared helper ─────────────────────────────────────────────────
@@ -51,6 +52,11 @@ export async function adminUpdateVendor(vendorId: string, formData: FormData): P
     .eq("id", vendorId);
 
   if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/vendors/${vendorId}`);
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/vendor/dashboard");
+  revalidatePath("/", "layout");
 }
 
 export async function advanceVendorStatus(vendorId: string, status: VendorStatus): Promise<void> {
@@ -62,6 +68,12 @@ export async function advanceVendorStatus(vendorId: string, status: VendorStatus
     .eq("id", vendorId);
 
   if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/vendors/${vendorId}`);
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/vendor/dashboard");
+  revalidatePath("/profile");
+  revalidatePath("/", "layout");
 }
 
 export async function approveVendor(vendorId: string): Promise<void> {

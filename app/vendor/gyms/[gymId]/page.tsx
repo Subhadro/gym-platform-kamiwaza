@@ -31,6 +31,9 @@ const fields = [
   { name: "price", label: "Monthly Price (₹)", type: "number" },
 ] as const;
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function GymDetailPage({ params }: { params: Promise<{ gymId: string }> }) {
   const { gymId } = await params;
   const vendor = await getVendorForUser();

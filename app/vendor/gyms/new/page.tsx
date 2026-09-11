@@ -23,13 +23,23 @@ export default function NewGymPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const formData = new FormData(e.currentTarget);
-    const result = await createGym(formData);
-    if (result?.error) {
-      setError(result.error);
+    try {
+      const formData = new FormData(e.currentTarget);
+      await createGym(formData);
+    } catch (err: unknown) {
+      // Re-throw Next.js redirect exceptions
+      if (
+        err &&
+        typeof err === "object" &&
+        "digest" in err &&
+        typeof (err as { digest?: unknown }).digest === "string" &&
+        (err as { digest: string }).digest.includes("NEXT_REDIRECT")
+      ) {
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Failed to create gym");
       setLoading(false);
     }
-    // on success server redirects to /vendor/gyms/[id]
   }
 
   return (

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getVendorForUser } from "@/lib/actions/vendor";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import type { GymStatus } from "@/lib/types/db";
 
 // ── Vendor actions ────────────────────────────────────────────────
@@ -30,6 +31,11 @@ export async function createGym(formData: FormData) {
     .single();
 
   if (error) throw new Error(error.message);
+
+  revalidatePath("/vendor/dashboard");
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/gyms");
+  revalidatePath("/", "layout");
   redirect(`/vendor/gyms/${data.id}`);
 }
 
@@ -55,6 +61,13 @@ export async function updateGym(gymId: string, formData: FormData): Promise<void
     .eq("vendor_id", vendor.id);
 
   if (error) throw new Error(error.message);
+
+  revalidatePath(`/vendor/gyms/${gymId}`);
+  revalidatePath(`/admin/gyms/${gymId}`);
+  revalidatePath("/vendor/dashboard");
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/gyms");
+  revalidatePath("/", "layout");
 }
 
 export async function submitGym(gymId: string): Promise<void> {
@@ -70,6 +83,13 @@ export async function submitGym(gymId: string): Promise<void> {
     .in("status", ["DRAFT", "REJECTED"]);
 
   if (error) throw new Error(error.message);
+
+  revalidatePath(`/vendor/gyms/${gymId}`);
+  revalidatePath(`/admin/gyms/${gymId}`);
+  revalidatePath("/vendor/dashboard");
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/gyms");
+  revalidatePath("/", "layout");
   redirect("/vendor/dashboard");
 }
 
@@ -109,6 +129,13 @@ export async function adminUpdateGym(gymId: string, formData: FormData): Promise
     .eq("id", gymId);
 
   if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/gyms/${gymId}`);
+  revalidatePath(`/vendor/gyms/${gymId}`);
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/vendor/dashboard");
+  revalidatePath("/gyms");
+  revalidatePath("/", "layout");
 }
 
 export async function advanceGymStatus(gymId: string, status: GymStatus): Promise<void> {
@@ -120,6 +147,13 @@ export async function advanceGymStatus(gymId: string, status: GymStatus): Promis
     .eq("id", gymId);
 
   if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/gyms/${gymId}`);
+  revalidatePath(`/vendor/gyms/${gymId}`);
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/vendor/dashboard");
+  revalidatePath("/gyms");
+  revalidatePath("/", "layout");
 }
 
 export async function setGymUnderReview(gymId: string): Promise<void> {

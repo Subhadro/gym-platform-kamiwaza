@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Gym } from "@/lib/types/db";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function GymsPage() {
   const supabase = await createClient();
   const { data: gyms } = await supabase

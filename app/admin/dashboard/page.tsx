@@ -12,6 +12,9 @@ const VENDOR_STATUS_STYLES: Record<VendorStatus, string> = {
 
 const VENDOR_STATUS_ORDER: VendorStatus[] = ["DRAFT", "APPROVED", "LIVE"];
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminDashboard() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -34,6 +37,17 @@ export default async function AdminDashboard() {
       .select("id, name, city, state, status, vendors(business_name)")
       .order("updated_at", { ascending: false }),
   ]);
+
+  const normalizedGyms = (gyms ?? []).map((gym) => ({
+    id: gym.id,
+    name: gym.name,
+    city: gym.city,
+    state: gym.state,
+    status: gym.status,
+    vendors: Array.isArray(gym.vendors)
+      ? (gym.vendors[0] as { business_name: string } | undefined) ?? null
+      : (gym.vendors as { business_name: string } | null) ?? null,
+  }));
 
   const vendorsByStatus = VENDOR_STATUS_ORDER.reduce((acc, status) => {
     const group = (vendors ?? []).filter((v) => v.status === status);
@@ -111,7 +125,7 @@ export default async function AdminDashboard() {
             </span>
           )}
         </div>
-        <GymTabs gyms={(gyms ?? []) as Parameters<typeof GymTabs>[0]["gyms"]} />
+        <GymTabs gyms={normalizedGyms} />
       </section>
     </div>
   );

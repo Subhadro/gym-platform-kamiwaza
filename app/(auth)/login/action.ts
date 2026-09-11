@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -18,6 +19,9 @@ export async function login(formData: FormData) {
       error: error.message,
     };
   }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/profile");
 
   return {
     success: true,

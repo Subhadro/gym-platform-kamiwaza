@@ -19,6 +19,9 @@ const GYM_STATUS_STYLES: Record<GymStatus, string> = {
   REJECTED: "bg-red-100 text-red-800",
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminVendorReviewPage({
   params,
 }: {

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export async function becomeVendor(formData: FormData) {
   const supabase = await createClient();
@@ -31,6 +32,11 @@ export async function becomeVendor(formData: FormData) {
     .eq("id", user.id);
 
   if (profileError) return { error: profileError.message };
+
+  revalidatePath("/", "layout");
+  revalidatePath("/profile");
+  revalidatePath("/vendor/dashboard");
+  revalidatePath("/admin/dashboard");
 
   redirect("/vendor/dashboard");
 }
