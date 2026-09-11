@@ -2,31 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { getVendorForUser } from "@/lib/actions/vendor";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import type { Gym, GymStatus, VendorStatus } from "@/lib/types/db";
-
-const VENDOR_STATUS_MESSAGES: Record<VendorStatus, { text: string; style: string }> = {
-  DRAFT: {
-    text: "Your vendor application is under review. You will be able to add gyms once approved.",
-    style: "border-yellow-300 bg-yellow-50 text-yellow-800",
-  },
-  APPROVED: {
-    text: "✓ Your vendor account is approved. You can now create and submit gym applications.",
-    style: "border-green-300 bg-green-50 text-green-800",
-  },
-  LIVE: {
-    text: "✓ Your vendor account is live.",
-    style: "border-emerald-300 bg-emerald-50 text-emerald-800",
-  },
-};
-
-const GYM_STATUS_STYLES: Record<GymStatus, string> = {
-  DRAFT: "bg-muted text-muted-foreground",
-  PENDING: "bg-yellow-100 text-yellow-800",
-  UNDER_REVIEW: "bg-blue-100 text-blue-800",
-  APPROVED: "bg-green-100 text-green-800",
-  LIVE: "bg-emerald-100 text-emerald-800",
-  REJECTED: "bg-red-100 text-red-800",
-};
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { GymCard } from "@/components/ui/gym-card";
+import { Plus, Dumbbell, ShieldCheck, Clock, CheckCircle2, Sparkles, AlertTriangle } from "lucide-react";
+import type { Gym, VendorStatus } from "@/lib/types/db";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -42,77 +23,146 @@ export default async function VendorDashboard() {
     .eq("vendor_id", vendor.id)
     .order("created_at", { ascending: false });
 
-  // Vendor can add gyms once APPROVED or LIVE
   const canAddGyms = vendor.status === "APPROVED" || vendor.status === "LIVE";
-  const statusMsg = VENDOR_STATUS_MESSAGES[vendor.status];
+
+  const totalGyms = gyms?.length ?? 0;
+  const liveGyms = gyms?.filter((g) => g.status === "LIVE").length ?? 0;
+  const pendingGyms = gyms?.filter((g) => ["PENDING", "UNDER_REVIEW"].includes(g.status)).length ?? 0;
+  const draftGyms = gyms?.filter((g) => ["DRAFT", "REJECTED"].includes(g.status)).length ?? 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Vendor Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">{vendor.business_name}</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+      {/* Header */}
+      <PageHeader
+        title="Vendor Dashboard"
+        description={`Manage your fitness business: ${vendor.business_name}`}
+        breadcrumbs={[{ label: "Vendor Portal" }]}
+        badge={<StatusBadge status={vendor.status} />}
+        actions={
+          canAddGyms ? (
+            <Link
+              href="/vendor/gyms/new"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 font-bold text-sm shadow-md shadow-emerald-500/20 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Gym Application</span>
+            </Link>
+          ) : undefined
+        }
+      />
+
+      {/* Vendor Status Alert Banner */}
+      {vendor.status === "DRAFT" && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 backdrop-blur-md flex items-start gap-3.5 text-amber-300">
+          <Clock className="w-5 h-5 shrink-0 mt-0.5 text-amber-400" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">Vendor Application Under Review</p>
+            <p className="text-xs text-amber-400/80 leading-relaxed">
+              Our admin team is currently validating your business details. Once approved, you will be able to submit gym locations and manage pricing.
+            </p>
+          </div>
         </div>
-        {canAddGyms && (
-          <Link
-            href="/vendor/gyms/new"
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition"
-          >
-            + New Gym Application
-          </Link>
+      )}
+
+      {vendor.status === "APPROVED" && (
+        <div className="rounded-2xl border border-teal-500/30 bg-teal-500/10 p-5 backdrop-blur-md flex items-start gap-3.5 text-teal-300">
+          <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-teal-400" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">Vendor Account Approved</p>
+            <p className="text-xs text-teal-400/80 leading-relaxed">
+              Your account is verified! You can now create gym listings and submit them for final audit.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {vendor.status === "LIVE" && (
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 backdrop-blur-md flex items-start gap-3.5 text-emerald-300">
+          <Sparkles className="w-5 h-5 shrink-0 mt-0.5 text-emerald-400" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">Vendor Account is Live</p>
+            <p className="text-xs text-emerald-400/80 leading-relaxed">
+              Your facilities are discoverable by fitness enthusiasts across the platform.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* KPI Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Gyms"
+          value={totalGyms}
+          subtitle="All locations registered"
+          icon={<Dumbbell className="w-5 h-5 text-emerald-400" />}
+          accent="emerald"
+        />
+        <StatCard
+          title="Live Facilities"
+          value={liveGyms}
+          subtitle="Publicly visible"
+          icon={<Sparkles className="w-5 h-5 text-teal-400" />}
+          accent="blue"
+        />
+        <StatCard
+          title="Pending Audit"
+          value={pendingGyms}
+          subtitle="Awaiting admin approval"
+          icon={<Clock className="w-5 h-5 text-amber-400" />}
+          accent="amber"
+        />
+        <StatCard
+          title="Drafts & Revisions"
+          value={draftGyms}
+          subtitle="Action required"
+          icon={<AlertTriangle className="w-5 h-5 text-purple-400" />}
+          accent="purple"
+        />
+      </div>
+
+      {/* Gym Listings Section */}
+      <div className="space-y-4 pt-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white tracking-tight">Your Gym Applications</h2>
+          <span className="text-xs text-muted-foreground">{totalGyms} total registered</span>
+        </div>
+
+        {!gyms?.length ? (
+          <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center mx-auto text-zinc-400">
+              <Dumbbell className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-white">No gym applications yet</h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                {canAddGyms
+                  ? "Create your first gym listing to get reviewed and published on the platform."
+                  : "Once your vendor application is approved, you will be able to create listings."}
+              </p>
+            </div>
+            {canAddGyms && (
+              <Link
+                href="/vendor/gyms/new"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs shadow-md transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Your First Gym</span>
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {gyms.map((gym: Gym) => (
+              <GymCard
+                key={gym.id}
+                gym={gym}
+                actionHref={`/vendor/gyms/${gym.id}`}
+                actionLabel={gym.status === "DRAFT" || gym.status === "REJECTED" ? "Edit Application" : "View Application"}
+              />
+            ))}
+          </div>
         )}
       </div>
-
-      {/* Vendor status banner */}
-      <div className={`border rounded-xl px-4 py-3 text-sm ${statusMsg.style}`}>
-        {statusMsg.text}
-      </div>
-
-      {/* Gym list */}
-      {canAddGyms && (
-        <>
-          {!gyms?.length ? (
-            <div className="border rounded-xl p-12 text-center text-muted-foreground">
-              <p className="text-lg font-medium">No gym applications yet</p>
-              <p className="text-sm mt-1">Create your first gym application to get started.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {gyms.map((gym: Gym) => (
-                <div key={gym.id} className="border rounded-xl p-5 flex items-center justify-between gap-4">
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold truncate">{gym.name}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${GYM_STATUS_STYLES[gym.status as GymStatus]}`}>
-                        {gym.status}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground truncate">{gym.city}, {gym.state}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {(gym.status === "DRAFT" || gym.status === "REJECTED") && (
-                      <Link
-                        href={`/vendor/gyms/${gym.id}`}
-                        className="text-sm border px-3 py-1.5 rounded-md hover:bg-accent transition"
-                      >
-                        Edit
-                      </Link>
-                    )}
-                    {gym.status !== "DRAFT" && (
-                      <Link
-                        href={`/vendor/gyms/${gym.id}`}
-                        className="text-sm border px-3 py-1.5 rounded-md hover:bg-accent transition"
-                      >
-                        View
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }
