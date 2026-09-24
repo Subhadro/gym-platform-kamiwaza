@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ShieldCheck, Users, Dumbbell, AlertCircle, ArrowRight, Building2, Mail, UserCheck } from "lucide-react";
-import type { VendorStatus } from "@/lib/types/db";
+import type { VendorStatus, GymSummary } from "@/types";
 
 const VENDOR_STATUS_ORDER: VendorStatus[] = ["DRAFT", "APPROVED", "LIVE"];
 
@@ -36,7 +36,7 @@ export default async function AdminDashboard() {
       .order("updated_at", { ascending: false }),
   ]);
 
-  const normalizedGyms = (gyms ?? []).map((gym) => ({
+  const normalizedGyms: GymSummary[] = (gyms ?? []).map((gym) => ({
     id: gym.id,
     name: gym.name,
     city: gym.city,

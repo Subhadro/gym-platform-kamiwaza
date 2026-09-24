@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { GymCard } from "@/components/ui/gym-card";
 import { Compass, Dumbbell, Sparkles, MapPin } from "lucide-react";
 import Link from "next/link";
-import type { Gym } from "@/lib/types/db";
+import type { Gym } from "@/types";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

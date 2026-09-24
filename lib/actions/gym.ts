@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getVendorForUser } from "@/lib/actions/vendor";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { GymStatus } from "@/lib/types/db";
+import type { GymStatus } from "@/types";
 
 // ── Vendor actions ────────────────────────────────────────────────
 
@@ -12,6 +12,9 @@ export async function createGym(formData: FormData) {
   const supabase = await createClient();
   const vendor = await getVendorForUser();
   if (!vendor) throw new Error("Vendor account not found");
+
+  const latRaw = formData.get("latitude") as string;
+  const lngRaw = formData.get("longitude") as string;
 
   const { data, error } = await supabase
     .from("gyms")
@@ -25,6 +28,10 @@ export async function createGym(formData: FormData) {
       pincode: formData.get("pincode") as string,
       phone: formData.get("phone") as string,
       price: parseFloat(formData.get("price") as string) || 0,
+      latitude: latRaw ? parseFloat(latRaw) : null,
+      longitude: lngRaw ? parseFloat(lngRaw) : null,
+      google_place_id: (formData.get("google_place_id") as string) || null,
+      location_link: (formData.get("location_link") as string) || null,
       status: "DRAFT",
     })
     .select("id")
@@ -44,6 +51,9 @@ export async function updateGym(gymId: string, formData: FormData): Promise<void
   const vendor = await getVendorForUser();
   if (!vendor) throw new Error("Vendor account not found");
 
+  const latRaw = formData.get("latitude") as string;
+  const lngRaw = formData.get("longitude") as string;
+
   const { error } = await supabase
     .from("gyms")
     .update({
@@ -55,6 +65,10 @@ export async function updateGym(gymId: string, formData: FormData): Promise<void
       pincode: formData.get("pincode") as string,
       phone: formData.get("phone") as string,
       price: parseFloat(formData.get("price") as string) || 0,
+      ...(latRaw ? { latitude: parseFloat(latRaw) } : {}),
+      ...(lngRaw ? { longitude: parseFloat(lngRaw) } : {}),
+      ...(formData.get("google_place_id") ? { google_place_id: formData.get("google_place_id") as string } : {}),
+      ...(formData.get("location_link") ? { location_link: formData.get("location_link") as string } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("id", gymId)

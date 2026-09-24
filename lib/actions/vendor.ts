@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { Vendor, VendorStatus } from "@/lib/types/db";
+import type { Vendor, VendorStatus } from "@/types";
 
 // ── Shared helper ─────────────────────────────────────────────────
 

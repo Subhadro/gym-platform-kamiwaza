@@ -4,20 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Dumbbell, MapPin, Building2, ArrowRight } from "lucide-react";
-import type { GymStatus } from "@/lib/types/db";
+import type { GymStatus, GymSummary } from "@/types";
 
 const ALL_TABS: GymStatus[] = ["DRAFT", "PENDING", "UNDER_REVIEW", "APPROVED", "LIVE", "REJECTED"];
 
-type Gym = {
-  id: string;
-  name: string;
-  city: string;
-  state: string;
-  status: GymStatus;
-  vendors: { business_name: string } | null;
-};
-
-export default function GymTabs({ gyms }: { gyms: Gym[] }) {
+export default function GymTabs({ gyms }: { gyms: GymSummary[] }) {
   const [active, setActive] = useState<GymStatus>("PENDING");
 
   const counts = ALL_TABS.reduce((acc, s) => {

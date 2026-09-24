@@ -6,7 +6,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
 import Link from "next/link";
 import { Building2, User, Mail, Phone, MapPin, Calendar, CheckCircle2, Sparkles, RotateCcw, Save, Dumbbell, ArrowRight } from "lucide-react";
-import type { GymStatus } from "@/lib/types/db";
+import type { GymStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

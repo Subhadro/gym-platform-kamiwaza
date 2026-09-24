@@ -7,7 +7,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { GymCard } from "@/components/ui/gym-card";
 import { Plus, Dumbbell, ShieldCheck, Clock, CheckCircle2, Sparkles, AlertTriangle } from "lucide-react";
-import type { Gym, VendorStatus } from "@/lib/types/db";
+import type { Gym, VendorStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
