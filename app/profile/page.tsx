@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getUser, getProfile } from "@/lib/supabase/session";
 import { redirect } from "next/navigation";
 import { logout } from "@/app/(auth)/logout/action";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -10,16 +10,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
+  const [user, profile] = await Promise.all([getUser(), getProfile()]);
   if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, email, phone, address, role, created_at")
-    .eq("id", user.id)
-    .single();
 
   const initial =
     profile?.full_name?.[0]?.toUpperCase() ??

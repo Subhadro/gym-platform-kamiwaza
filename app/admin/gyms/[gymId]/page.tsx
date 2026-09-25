@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/supabase/session";
 import { redirect } from "next/navigation";
 import { adminUpdateGym, setGymUnderReview, reviewGym, goLive } from "@/lib/actions/gym";
 import { PageHeader } from "@/components/ui/page-header";
@@ -18,16 +19,7 @@ export default async function AdminGymReviewPage({
 }) {
   const { gymId } = await params;
   const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "ADMIN") redirect("/");
+  await requireRole("ADMIN");
 
   const { data: gym } = await supabase
     .from("gyms")

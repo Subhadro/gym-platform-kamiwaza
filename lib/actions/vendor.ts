@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireRole, getUser } from "@/lib/supabase/session";
 import { revalidatePath } from "next/cache";
 import type { Vendor, VendorStatus } from "@/types";
 
@@ -8,7 +9,7 @@ import type { Vendor, VendorStatus } from "@/types";
 
 export async function getVendorForUser(): Promise<Vendor | null> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return null;
 
   const { data } = await supabase
@@ -23,16 +24,8 @@ export async function getVendorForUser(): Promise<Vendor | null> {
 // ── Admin helper ──────────────────────────────────────────────────
 
 async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "ADMIN") throw new Error("Unauthorized");
-  return supabase;
+  await requireRole("ADMIN");
+  return createClient();
 }
 
 // ── Admin vendor actions ──────────────────────────────────────────

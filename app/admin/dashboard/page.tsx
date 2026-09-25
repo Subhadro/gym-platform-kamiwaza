@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireRole } from "@/lib/supabase/session";
 import Link from "next/link";
 import GymTabs from "@/app/admin/_components/GymTabs";
 import { PageHeader } from "@/components/ui/page-header";
@@ -14,16 +14,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function AdminDashboard() {
+  await requireRole("ADMIN");
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "ADMIN") redirect("/");
 
   const [{ data: vendors }, { data: gyms }] = await Promise.all([
     supabase

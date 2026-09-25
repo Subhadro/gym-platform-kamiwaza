@@ -1,20 +1,9 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getUser, getProfile } from "@/lib/supabase/session";
 import { Dumbbell, User, ShieldAlert, Store, Compass, LogIn } from "lucide-react";
 
 export default async function Navbar() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  let profile = null;
-  if (user) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("role, full_name")
-      .eq("id", user.id)
-      .single();
-    profile = data;
-  }
+  const [user, profile] = await Promise.all([getUser(), getProfile()]);
 
   const initial =
     profile?.full_name?.[0]?.toUpperCase() ??

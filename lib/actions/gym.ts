@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/supabase/session";
 import { getVendorForUser } from "@/lib/actions/vendor";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -110,16 +111,8 @@ export async function submitGym(gymId: string): Promise<void> {
 // ── Admin helpers ─────────────────────────────────────────────────
 
 async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "ADMIN") throw new Error("Unauthorized");
-  return supabase;
+  await requireRole("ADMIN");
+  return createClient();
 }
 
 // ── Admin gym actions ─────────────────────────────────────────────
